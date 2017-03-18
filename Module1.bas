@@ -85,6 +85,7 @@ Sub Main()
             ReleaseMutex hMutex
             CloseHandle hMutex
             Sleep 50
+            DoEvents
             'MsgBox bUpdated
             
         Loop While bUpdated
