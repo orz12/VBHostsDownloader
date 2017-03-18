@@ -81,15 +81,17 @@ Sub Main()
         Do
         
             hMutex = CreateMutex(ByVal 0&, 1, App.Title)
-            bUpdated = (Err.LastDllError = ERROR_ALREADY_EXISTS Or App.PrevInstance)
+            bUpdated = (Err.LastDllError = ERROR_ALREADY_EXISTS)
             ReleaseMutex hMutex
             CloseHandle hMutex
             Sleep 50
+            'MsgBox bUpdated
             
         Loop While bUpdated
     
         SetAttr AppPath & ".tmp", 0
         Kill AppPath & ".tmp"
+        'MsgBox "deleted!"
         End
     
     End If
@@ -151,7 +153,7 @@ Sub Main()
                     
                     'MoveFileEx AppPath & App.EXEName & "new", "", MOVEFILE_DELAY_UNTIL_REBOOT
                     MoveFileEx AppPath & ".tmp", vbNullString, MOVEFILE_DELAY_UNTIL_REBOOT
-                    Shell AppPath & ".exe -d", vbHide
+                    Shell AppPath & ".exe /d"
                     'MoveFileEx AppPath & "version.txt", vbNull, MOVEFILE_DELAY_UNTIL_REBOOT
                     
                     
