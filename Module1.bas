@@ -1,4 +1,5 @@
 Attribute VB_Name = "Module1"
+Option Explicit
 Private Declare Function URLDownloadToFile Lib "urlmon" Alias "URLDownloadToFileA" ( _
                                                             ByVal pCaller As Long, _
                                                             ByVal szURL As String, _
@@ -11,10 +12,14 @@ Private Declare Function GetLastError Lib "kernel32" () As Long
 
 Private Const ERROR_ALREADY_EXISTS = 183&
 Private Declare Function CreateMutex Lib "kernel32" Alias "CreateMutexA" (lpMutexAttributes As Any, _
-ByVal bInitialOwner As Long, ByVal lpName As String) As Long
+    ByVal bInitialOwner As Long, ByVal lpName As String) As Long
 Private Declare Function ReleaseMutex Lib "kernel32" (ByVal hMutex As Long) As Long
 Private Declare Function CloseHandle Lib "kernel32" (ByVal hObject As Long) As Long
-
+Private Declare Function MoveFileEx Lib "kernel32" Alias "MoveFileExA" (ByVal lpExistingFileName As String, _
+    ByVal lpNewFileName As String, ByVal dwFlags As Long) As Long
+    
+Const MOVEFILE_REPLACE_EXISTING = &H1
+Const MOVEFILE_WRITE_THROUGH = &H8
 'Public Function DownloadFile(ByVal strURL As String, ByVal strFile As String) As Boolean
 '   DownloadFile = URLDownloadToFile(0, strURL, strFile, 0, 0) = 0
 'End Function
@@ -69,5 +74,54 @@ Sub Main()
     
     ReleaseMutex hMutex
     CloseHandle hMutex
+    
+    Dim AppPath As String, CurrentVersion As String
+    
+    AppPath = IIf(Right(App.Path, 1) = "\", App.Path, App.Path & "\")
+    
+    If URLDownloadToFile(0, "https://raw.githubusercontent.com/orz12/VBHostsDownloader/master/version.txt", _
+            AppPath & "version.txt", 0, 0) = 0 Then
+            
+        On Error Resume Next
+        
+        Open AppPath & "version.txt" For Input As #1
+        Line Input #1, CurrentVersion
+        Close #1
+        
+        If Len(CurrentVersion) > 0 And CurrentVersion <> App.Major & "." & App.Minor & "." & App.Revision Then
+        
+            If MsgBox("New version available! Would you like to download it now?", vbInformation Or vbOKCancel) = vbOK Then
+            
+                Dim bUpdated As Boolean
+                If URLDownloadToFile(0, "https://github.com/orz12/VBHostsDownloader/blob/master/VBHostsDownloader.exe?raw=true", _
+                        AppPath & "version.txt", 0, 0) = 0 Then
+                        
+                    If MoveFileEx(AppPath & App.EXEName & ".exe", AppPath & App.EXEName & "backup", MOVEFILE_REPLACE_EXISTING Or MOVEFILE_WRITE_THROUGH) Then
+                
+                        If MoveFileEx(AppPath & "version.txt", AppPath & App.EXEName & ".exe", MOVEFILE_REPLACE_EXISTING) Then
+                        
+                            MsgBox "Updated! Congratulations!", vbInformation, "Hosts Downloader by LouizQ"
+                            bUpdated = True
+                            
+                        End If
+                        
+                    End If
+                    
+                End If
+                
+            Else
+                
+                If Not bUpdated Then MsgBox "Access denied! GetLastErrorCode:" & GetLastError & "(" & Err.LastDllError & "#" & Err.Number & ")"
+                
+            End If
+            
+            
+        End If
+        
+        
+    'Else
+    '    MsgBox "1GetLastErrorCode:" & GetLastError & "(" & Err.LastDllError & "#" & Err.Number & ")"
+    
+    End If
     
 End Sub
