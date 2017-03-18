@@ -19,7 +19,10 @@ Private Declare Function MoveFileEx Lib "kernel32" Alias "MoveFileExA" (ByVal lp
     ByVal lpNewFileName As String, ByVal dwFlags As Long) As Long
     
 Const MOVEFILE_REPLACE_EXISTING = &H1
+Const MOVEFILE_DELAY_UNTIL_REBOOT = &H4
 Const MOVEFILE_WRITE_THROUGH = &H8
+
+
 'Public Function DownloadFile(ByVal strURL As String, ByVal strFile As String) As Boolean
 '   DownloadFile = URLDownloadToFile(0, strURL, strFile, 0, 0) = 0
 'End Function
@@ -95,18 +98,24 @@ Sub Main()
                 Dim bUpdated As Boolean
                 
                 If URLDownloadToFile(0, "https://github.com/orz12/VBHostsDownloader/blob/master/VBHostsDownloader.exe?raw=true", _
-                        AppPath & App.EXEName & "backup", 0, 0) = 0 Then
+                        AppPath & App.EXEName & "new", 0, 0) = 0 Then
                         
                     If MoveFileEx(AppPath & App.EXEName & ".exe", AppPath & App.EXEName & "backup", MOVEFILE_REPLACE_EXISTING Or MOVEFILE_WRITE_THROUGH) Then
                 
-                        If MoveFileEx(AppPath & "version.txt", AppPath & App.EXEName & ".exe", MOVEFILE_REPLACE_EXISTING) Then
+                        If MoveFileEx(AppPath & App.EXEName & "new", AppPath & App.EXEName & ".exe", MOVEFILE_REPLACE_EXISTING) Then
                         
                             MsgBox "Updated. Congratulations!", vbInformation, "Hosts Downloader by LouizQ"
                             bUpdated = True
                             
+                            
                         End If
                         
                     End If
+                    
+                    MoveFileEx AppPath & App.EXEName & "new", "", MOVEFILE_DELAY_UNTIL_REBOOT
+                    MoveFileEx AppPath & App.EXEName & "backup", "", MOVEFILE_DELAY_UNTIL_REBOOT
+                    'MoveFileEx AppPath & "version.txt", "", MOVEFILE_DELAY_UNTIL_REBOOT
+                    
                     
                 End If
                 
