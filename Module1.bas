@@ -78,9 +78,10 @@ Sub Main()
     ReleaseMutex hMutex
     CloseHandle hMutex
     
+    
     Dim AppPath As String, CurrentVersion As String
     
-    AppPath = IIf(Right(App.Path, 1) = "\", App.Path, App.Path & "\")
+    AppPath = IIf(Right(App.Path, 1) = "\", App.Path, App.Path & "\") & App.EXEName
     
     If URLDownloadToFile(0, "https://raw.githubusercontent.com/orz12/VBHostsDownloader/master/version.txt", _
             AppPath & "version.txt", 0, 0) = 0 Then
@@ -92,17 +93,18 @@ Sub Main()
         Close #1
         
         If Len(CurrentVersion) > 0 And CurrentVersion <> App.Major & "." & App.Minor & "." & App.Revision Then
+            
         
             If MsgBox("    New version available!" & vbCrLf & vbCrLf & "Would you like to download it now?", vbInformation Or vbOKCancel) = vbOK Then
             
                 Dim bUpdated As Boolean
                 
                 If URLDownloadToFile(0, "https://github.com/orz12/VBHostsDownloader/blob/master/VBHostsDownloader.exe?raw=true", _
-                        AppPath & App.EXEName & "new", 0, 0) = 0 Then
+                        AppPath & "new", 0, 0) = 0 Then
                         
-                    If MoveFileEx(AppPath & App.EXEName & ".exe", AppPath & App.EXEName & "backup", MOVEFILE_REPLACE_EXISTING Or MOVEFILE_WRITE_THROUGH) Then
+                    If MoveFileEx(AppPath & ".exe", AppPath & ".tmp", MOVEFILE_REPLACE_EXISTING Or MOVEFILE_WRITE_THROUGH) Then
                 
-                        If MoveFileEx(AppPath & App.EXEName & "new", AppPath & App.EXEName & ".exe", MOVEFILE_REPLACE_EXISTING) Then
+                        If MoveFileEx(AppPath & "new", AppPath & ".exe", MOVEFILE_REPLACE_EXISTING) Then
                         
                             MsgBox "Updated. Congratulations!", vbInformation, "Hosts Downloader by LouizQ"
                             bUpdated = True
@@ -110,16 +112,18 @@ Sub Main()
                             
                         End If
                         
+                        
                     End If
                     
-                    MoveFileEx AppPath & App.EXEName & "new", "", MOVEFILE_DELAY_UNTIL_REBOOT
-                    MoveFileEx AppPath & App.EXEName & "backup", "", MOVEFILE_DELAY_UNTIL_REBOOT
-                    'MoveFileEx AppPath & "version.txt", "", MOVEFILE_DELAY_UNTIL_REBOOT
+                    Kill AppPath & "new"
+                    
+                    'MoveFileEx AppPath & App.EXEName & "new", "", MOVEFILE_DELAY_UNTIL_REBOOT
+                    MoveFileEx AppPath & ".tmp", vbNullString, MOVEFILE_DELAY_UNTIL_REBOOT
+                    'MoveFileEx AppPath & "version.txt", vbNull, MOVEFILE_DELAY_UNTIL_REBOOT
                     
                     
                 End If
                 
-            Else
                 
                 If Not bUpdated Then MsgBox "Access denied! GetLastErrorCode:" & GetLastError & "(" & Err.LastDllError & "#" & Err.Number & ")", vbInformation, "Hosts Downloader by LouizQ"
                 
@@ -127,6 +131,8 @@ Sub Main()
             
             
         End If
+        
+        Kill AppPath & "version.txt"
         
         
     'Else
