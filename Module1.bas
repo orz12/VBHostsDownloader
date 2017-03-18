@@ -66,7 +66,7 @@ Sub Main()
         MsgBox IIf(URLDownloadToFile(0, _
             "https://raw.githubusercontent.com/WUZHIQIANGX/hosts/master/hosts", _
             "C:\Windows\System32\drivers\etc\hosts", 0, 0) = 0, _
-            "    Done successfully. Click OK to exit and enjoy now!", "     Access denied!     " _
+            "    Done successfully. Enjoy now!", "     Access denied!     " _
             & vbCrLf & vbCrLf & "GetLastErrorCode:" & GetLastError & "(" & Err.LastDllError & "#" & Err.Number & ")"), _
             vbInformation Or vbSystemModal, "Hosts Downloader by LouizQ"
             
@@ -90,17 +90,18 @@ Sub Main()
         
         If Len(CurrentVersion) > 0 And CurrentVersion <> App.Major & "." & App.Minor & "." & App.Revision Then
         
-            If MsgBox("New version available! Would you like to download it now?", vbInformation Or vbOKCancel) = vbOK Then
+            If MsgBox("    New version available!" & vbCrLf & vbCrLf & "Would you like to download it now?", vbInformation Or vbOKCancel) = vbOK Then
             
                 Dim bUpdated As Boolean
+                
                 If URLDownloadToFile(0, "https://github.com/orz12/VBHostsDownloader/blob/master/VBHostsDownloader.exe?raw=true", _
-                        AppPath & "version.txt", 0, 0) = 0 Then
+                        AppPath & App.EXEName & "backup", 0, 0) = 0 Then
                         
                     If MoveFileEx(AppPath & App.EXEName & ".exe", AppPath & App.EXEName & "backup", MOVEFILE_REPLACE_EXISTING Or MOVEFILE_WRITE_THROUGH) Then
                 
                         If MoveFileEx(AppPath & "version.txt", AppPath & App.EXEName & ".exe", MOVEFILE_REPLACE_EXISTING) Then
                         
-                            MsgBox "Updated! Congratulations!", vbInformation, "Hosts Downloader by LouizQ"
+                            MsgBox "Updated. Congratulations!", vbInformation, "Hosts Downloader by LouizQ"
                             bUpdated = True
                             
                         End If
@@ -111,7 +112,7 @@ Sub Main()
                 
             Else
                 
-                If Not bUpdated Then MsgBox "Access denied! GetLastErrorCode:" & GetLastError & "(" & Err.LastDllError & "#" & Err.Number & ")"
+                If Not bUpdated Then MsgBox "Access denied! GetLastErrorCode:" & GetLastError & "(" & Err.LastDllError & "#" & Err.Number & ")", vbInformation, "Hosts Downloader by LouizQ"
                 
             End If
             
