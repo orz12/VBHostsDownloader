@@ -18,11 +18,19 @@ Private Declare Function CloseHandle Lib "kernel32" (ByVal hObject As Long) As L
 Private Declare Function MoveFileEx Lib "kernel32" Alias "MoveFileExA" (ByVal lpExistingFileName As String, _
     ByVal lpNewFileName As String, ByVal dwFlags As Long) As Long
     
+    
+    
 Const MOVEFILE_REPLACE_EXISTING = &H1
 Const MOVEFILE_DELAY_UNTIL_REBOOT = &H4
 Const MOVEFILE_WRITE_THROUGH = &H8
 
 
+ Private Declare Sub Sleep Lib "kernel32" (ByVal dwMilliseconds As Long)
+' Private Declare Function ShellExecute Lib "shell32.dll" Alias "ShellExecuteA" _
+    (ByVal hWnd As Long, ByVal lpOperation As String, _
+    ByVal lpFile As String, ByVal lpParameters As String, _
+    ByVal lpDirectory As String, ByVal nShowCmd As Long) As Long
+ 
 'Public Function DownloadFile(ByVal strURL As String, ByVal strFile As String) As Boolean
 '   DownloadFile = URLDownloadToFile(0, strURL, strFile, 0, 0) = 0
 'End Function
@@ -52,15 +60,44 @@ Const MOVEFILE_WRITE_THROUGH = &H8
 
 Sub Main()
 
-    If UCase(Command()) = "/Q" Or UCase(Command()) = "-Q" Then URLDownloadToFile 0, _
+    On Error Resume Next
+
+    If UCase(Command()) = "/Q" Or UCase(Command()) = "-Q" Then
+    
+        URLDownloadToFile 0, _
             "https://raw.githubusercontent.com/WUZHIQIANGX/hosts/master/hosts", _
-            "C:\Windows\System32\drivers\etc\hosts", 0, 0: End
+            "C:\Windows\System32\drivers\etc\hosts", 0, 0
+        End
+        
+    End If
+    
+    Dim AppPath As String, CurrentVersion As String
+    AppPath = IIf(Right(App.Path, 1) = "\", App.Path, App.Path & "\") & App.EXEName
+    
+    Dim hMutex As Long, bUpdated As Boolean
+    
+    If UCase(Command()) = "/D" Or UCase(Command()) = "-D" Then
+    
+        Do
+        
+            hMutex = CreateMutex(ByVal 0&, 1, App.Title)
+            bUpdated = (Err.LastDllError = ERROR_ALREADY_EXISTS Or App.PrevInstance)
+            ReleaseMutex hMutex
+            CloseHandle hMutex
+            Sleep 50
             
-    Dim hMutex As Long
+        Loop While bUpdated
+    
+        SetAttr AppPath & ".tmp", 0
+        Kill AppPath & ".tmp"
+        End
+    
+    End If
+    
     hMutex = CreateMutex(ByVal 0&, 1, App.Title)
-    
-    If Err.LastDllError = ERROR_ALREADY_EXISTS Or App.PrevInstance = True Then
-    
+
+    If Err.LastDllError = ERROR_ALREADY_EXISTS Or App.PrevInstance Then
+        
         MsgBox "Application is already running. Please wait for a while, or terminate it by yourself.", _
         vbCritical Or vbSystemModal, "Hosts Downloader by LouizQ"
         
@@ -74,35 +111,30 @@ Sub Main()
             vbInformation Or vbSystemModal, "Hosts Downloader by LouizQ"
             
     End If
-    
-    ReleaseMutex hMutex
-    CloseHandle hMutex
-    
-    
-    Dim AppPath As String, CurrentVersion As String
-    
-    AppPath = IIf(Right(App.Path, 1) = "\", App.Path, App.Path & "\") & App.EXEName
+        
     
     If URLDownloadToFile(0, "https://raw.githubusercontent.com/orz12/VBHostsDownloader/master/version.txt", _
             AppPath & "version.txt", 0, 0) = 0 Then
             
-        On Error Resume Next
         
         Open AppPath & "version.txt" For Input As #1
         Line Input #1, CurrentVersion
         Close #1
+        
+        Kill AppPath & "version.txt"
         
         If Len(CurrentVersion) > 0 And CurrentVersion <> App.Major & "." & App.Minor & "." & App.Revision Then
             
         
             If MsgBox("    New version available!" & vbCrLf & vbCrLf & "Would you like to download it now?", vbInformation Or vbOKCancel) = vbOK Then
             
-                Dim bUpdated As Boolean
                 
                 If URLDownloadToFile(0, "https://github.com/orz12/VBHostsDownloader/blob/master/VBHostsDownloader.exe?raw=true", _
                         AppPath & "new", 0, 0) = 0 Then
                         
                     If MoveFileEx(AppPath & ".exe", AppPath & ".tmp", MOVEFILE_REPLACE_EXISTING Or MOVEFILE_WRITE_THROUGH) Then
+                    
+                        SetAttr AppPath & ".tmp", GetAttr(AppPath & ".tmp") Or vbHidden Or vbSystem
                 
                         If MoveFileEx(AppPath & "new", AppPath & ".exe", MOVEFILE_REPLACE_EXISTING) Then
                         
@@ -119,6 +151,7 @@ Sub Main()
                     
                     'MoveFileEx AppPath & App.EXEName & "new", "", MOVEFILE_DELAY_UNTIL_REBOOT
                     MoveFileEx AppPath & ".tmp", vbNullString, MOVEFILE_DELAY_UNTIL_REBOOT
+                    Shell AppPath & ".exe -d", vbHide
                     'MoveFileEx AppPath & "version.txt", vbNull, MOVEFILE_DELAY_UNTIL_REBOOT
                     
                     
@@ -132,12 +165,14 @@ Sub Main()
             
         End If
         
-        Kill AppPath & "version.txt"
         
         
     'Else
     '    MsgBox "1GetLastErrorCode:" & GetLastError & "(" & Err.LastDllError & "#" & Err.Number & ")"
     
     End If
+    
+    ReleaseMutex hMutex
+    CloseHandle hMutex
     
 End Sub
