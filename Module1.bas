@@ -26,10 +26,22 @@ Const MOVEFILE_WRITE_THROUGH = &H8
 
 
  Private Declare Sub Sleep Lib "kernel32" (ByVal dwMilliseconds As Long)
+ 
 ' Private Declare Function ShellExecute Lib "shell32.dll" Alias "ShellExecuteA" _
     (ByVal hWnd As Long, ByVal lpOperation As String, _
     ByVal lpFile As String, ByVal lpParameters As String, _
     ByVal lpDirectory As String, ByVal nShowCmd As Long) As Long
+Declare Function GetSystemDirectory Lib "kernel32" Alias "GetSystemDirectoryA" (ByVal lpbuffer As String, ByVal nSize As Long) As Long
+Public Const MAX_PATH = 260
+
+
+'Public Function GetSysPath() As String 'System32
+'    Dim Buffer As String
+'    Buffer = Space(MAX_PATH)
+'    If GetSystemDirectory(Buffer, Len(Buffer)) <> 0 Then
+'        GetSysPath = Mid(Trim(Buffer), 1, Len(Trim(Buffer)) - 1)
+'    End If
+'End Function
  
 'Public Function DownloadFile(ByVal strURL As String, ByVal strFile As String) As Boolean
 '   DownloadFile = URLDownloadToFile(0, strURL, strFile, 0, 0) = 0
@@ -61,12 +73,19 @@ Const MOVEFILE_WRITE_THROUGH = &H8
 Sub Main()
 
     On Error Resume Next
+    Dim GetSysPath As String
+    GetSysPath = Space(MAX_PATH)
+    If GetSystemDirectory(GetSysPath, Len(GetSysPath)) <> 0 Then
+        GetSysPath = Mid(Trim(GetSysPath), 1, Len(Trim(GetSysPath)) - 1)
+    Else
+        GetSysPath = "C:\Windows\System32"
+    End If
 
     If UCase(Command()) = "/Q" Or UCase(Command()) = "-Q" Then
     
         URLDownloadToFile 0, _
             "https://raw.githubusercontent.com/WUZHIQIANGX/hosts/master/hosts", _
-            "C:\Windows\System32\drivers\etc\hosts", 0, 0
+            GetSysPath & "\drivers\etc\hosts", 0, 0
         End
         
     End If
@@ -89,6 +108,9 @@ Sub Main()
             'MsgBox bUpdated
             
         Loop While bUpdated
+        
+        Sleep 500
+        DoEvents
     
         SetAttr AppPath & ".tmp", 0
         Kill AppPath & ".tmp"
@@ -102,16 +124,16 @@ Sub Main()
     If Err.LastDllError = ERROR_ALREADY_EXISTS Or App.PrevInstance Then
         
         MsgBox "Application is already running. Please wait for a while, or terminate it by yourself.", _
-        vbCritical Or vbSystemModal, "Hosts Downloader by LouizQ"
+        vbCritical Or vbSystemModal
         
     Else
     
         MsgBox IIf(URLDownloadToFile(0, _
             "https://raw.githubusercontent.com/WUZHIQIANGX/hosts/master/hosts", _
-            "C:\Windows\System32\drivers\etc\hosts", 0, 0) = 0, _
+            GetSysPath & "\drivers\etc\hosts", 0, 0) = 0, _
             "    Done successfully. Enjoy now!", "     Access denied!     " _
             & vbCrLf & vbCrLf & "GetLastErrorCode:" & GetLastError & "(" & Err.LastDllError & "#" & Err.Number & ")"), _
-            vbInformation Or vbSystemModal, "Hosts Downloader by LouizQ"
+            vbInformation Or vbSystemModal
             
     End If
         
@@ -141,7 +163,7 @@ Sub Main()
                 
                         If MoveFileEx(AppPath & "new", AppPath & ".exe", MOVEFILE_REPLACE_EXISTING) Then
                         
-                            MsgBox "Updated. Congratulations!", vbInformation, "Hosts Downloader by LouizQ"
+                            MsgBox "Updated. Congratulations!", vbInformation
                             bUpdated = True
                             
                             
@@ -161,7 +183,8 @@ Sub Main()
                 End If
                 
                 
-                If Not bUpdated Then MsgBox "Access denied! GetLastErrorCode:" & GetLastError & "(" & Err.LastDllError & "#" & Err.Number & ")", vbInformation, "Hosts Downloader by LouizQ"
+                If Not bUpdated Then MsgBox "Access denied! GetLastErrorCode:" & _
+                    GetLastError & "(" & Err.LastDllError & "#" & Err.Number & ")", vbInformation
                 
             End If
             
