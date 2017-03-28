@@ -100,9 +100,10 @@ Sub Main()
         Do
         
             hMutex = CreateMutex(ByVal 0&, 1, App.Title)
-            bUpdated = (Err.LastDllError = ERROR_ALREADY_EXISTS)
+            bUpdated = (Err.LastDllError = ERROR_ALREADY_EXISTS) 'still running
             ReleaseMutex hMutex
             CloseHandle hMutex
+            
             Sleep 50
             DoEvents
             'MsgBox bUpdated
@@ -114,6 +115,7 @@ Sub Main()
     
         SetAttr AppPath & ".tmp", 0
         Kill AppPath & ".tmp"
+        SetAttr AppPath & ".tmp", vbReadOnly Or vbHidden Or vbSystem 'when delete action failed
         'MsgBox "deleted!"
         End
     
@@ -141,17 +143,23 @@ Sub Main()
     If URLDownloadToFile(0, "https://raw.githubusercontent.com/orz12/VBHostsDownloader/master/version.txt", _
             AppPath & "version.txt", 0, 0) = 0 Then
             
-        
-        Open AppPath & "version.txt" For Input As #1
-        Line Input #1, CurrentVersion
-        Close #1
+        Dim FreeFileHandle As Integer, strNewVerDetail As String
+        strNewVerDetail = vbCrLf
+        FreeFileHandle = FreeFile
+        Open AppPath & "version.txt" For Input As #FreeFileHandle
+            Line Input #FreeFileHandle, CurrentVersion
+            Do Until EOF(FreeFileHandle) 'Backward Compatibility
+              Line Input #1, strNewVerDetail
+              strNewVerDetail = strNewVerDetail + vbCrLf
+            Loop
+        Close #FreeFileHandle
         
         Kill AppPath & "version.txt"
         
         If Len(CurrentVersion) > 0 And CurrentVersion <> App.Major & "." & App.Minor & "." & App.Revision Then
             
         
-            If MsgBox("    New version available!" & vbCrLf & vbCrLf & "Would you like to download it now?", vbInformation Or vbOKCancel) = vbOK Then
+            If MsgBox("    New version (" & CurrentVersion & ") available!" & vbCrLf & vbCrLf & "Would you like to download it now?" & strNewVerDetail, vbInformation Or vbOKCancel) = vbOK Then
             
                 
                 If URLDownloadToFile(0, "https://github.com/orz12/VBHostsDownloader/blob/master/VBHostsDownloader.exe?raw=true", _
@@ -176,7 +184,7 @@ Sub Main()
                     
                     'MoveFileEx AppPath & App.EXEName & "new", "", MOVEFILE_DELAY_UNTIL_REBOOT
                     MoveFileEx AppPath & ".tmp", vbNullString, MOVEFILE_DELAY_UNTIL_REBOOT
-                    Shell AppPath & ".exe /d"
+                    Shell AppPath & ".exe /d"   'try to kill old versionfile immediately.
                     'MoveFileEx AppPath & "version.txt", vbNull, MOVEFILE_DELAY_UNTIL_REBOOT
                     
                     
