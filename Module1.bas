@@ -155,6 +155,7 @@ Sub Main()
         
 DownloadNewVersion:
 
+
     If URLDownloadToFile(0, "https://raw.githubusercontent.com/orz12/VBHostsDownloader/master/version.txt", _
             AppPath & "version.txt", 0, 0) = 0 Then
             
@@ -172,7 +173,7 @@ DownloadNewVersion:
         
         Kill AppPath & "version.txt"
         
-        If Len(CurrentVersion) > 0 And CurrentVersion <> App.Major & "." & App.Minor & "." & App.Revision Then
+        If (Len(CurrentVersion) > 0 And CurrentVersion <> App.Major & "." & App.Minor & "." & App.Revision) Or (Len(strNewHash) > 0 And strNewHash <> Dx.DigestFileToHexStr(AppPath & ".exe")) Then
             
         
             If MsgBox("    New version (" & CurrentVersion & ") available!" & vbCrLf & vbCrLf & "Would you like to download it now? It'll cost a little time." & vbCrLf & strNewVerDetail, vbInformation Or vbOKCancel) = vbOK Then
