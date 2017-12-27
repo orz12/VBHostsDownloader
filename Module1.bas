@@ -81,6 +81,7 @@ Sub Main()
         GetSysPath = "C:\Windows\System32"
     End If
 
+
     If UCase(Command()) = "/Q" Or UCase(Command()) = "-Q" Then
     
         URLDownloadToFile 0, _
@@ -90,8 +91,20 @@ Sub Main()
         
     End If
     
-    Dim AppPath As String, CurrentVersion As String
+    Dim AppPath As String, CurrentVersion As String, strNewHash As String
     AppPath = IIf(Right(App.Path, 1) = "\", App.Path, App.Path & "\") & App.EXEName
+    Dim Dx As MD5
+    Set Dx = New MD5
+    
+    If UCase(Command()) = "/H" Or UCase(Command()) = "-H" Then
+        strNewHash = Dx.DigestFileToHexStr(AppPath & ".exe")
+        If MsgBox("MD5:" & strNewHash & vbCrLf & "Do you want to copy that?", vbInformation Or vbOKCancel) = vbOK Then
+            Clipboard.Clear
+            Clipboard.SetText strNewHash
+        End If
+        End
+        
+    End If
     
     Dim hMutex As Long, bUpdated As Boolean
     
@@ -139,7 +152,8 @@ Sub Main()
             
     End If
         
-    
+DownloadNewVersion:
+
     If URLDownloadToFile(0, "https://raw.githubusercontent.com/orz12/VBHostsDownloader/master/version.txt", _
             AppPath & "version.txt", 0, 0) = 0 Then
             
@@ -148,6 +162,7 @@ Sub Main()
         FreeFileHandle = FreeFile
         Open AppPath & "version.txt" For Input As #FreeFileHandle
             Line Input #FreeFileHandle, CurrentVersion
+            If Not EOF(FreeFileHandle) Then Line Input #1, strNewHash
             Do Until EOF(FreeFileHandle) 'Backward Compatibility
               Line Input #1, strNewVerDetail
               strNewVerDetail = strNewVerDetail + vbCrLf
@@ -159,17 +174,31 @@ Sub Main()
         If Len(CurrentVersion) > 0 And CurrentVersion <> App.Major & "." & App.Minor & "." & App.Revision Then
             
         
-            If MsgBox("    New version (" & CurrentVersion & ") available!" & vbCrLf & vbCrLf & "Would you like to download it now?" & strNewVerDetail, vbInformation Or vbOKCancel) = vbOK Then
+            If MsgBox("    New version (" & CurrentVersion & ") available!" & vbCrLf & vbCrLf & "Would you like to download it now? It'll cost a little time." & strNewVerDetail, vbInformation Or vbOKCancel) = vbOK Then
             
                 
                 If URLDownloadToFile(0, "https://github.com/orz12/VBHostsDownloader/blob/master/VBHostsDownloader.exe?raw=true", _
-                        AppPath & "new", 0, 0) = 0 Then
+                        AppPath & ".bin", 0, 0) = 0 Then
+                    
+                    If Not strNewHash And strNewHash <> Dx.DigestFileToHexStr(AppPath & ".exe") Then
+                    
+                        Dim lrtn As Long
+                        lrtn = MsgBox("Hash check failed for " & "https://github.com/orz12/VBHostsDownloader/blob/master/VBHostsDownloader.exe?raw=true" & ". expected: " & strNewHash _
+                                & ", actual: " & Dx.DigestFileToHexStr(AppPath & ".exe"), vbAbortRetryIgnore)
+                        If lrtn = vbRetry Then
+                            GoTo DownloadNewVersion
+                        ElseIf lrtn = vbAbort Then
+                            End
+                        Else
+                        End If
                         
+                    End If
+                    
                     If MoveFileEx(AppPath & ".exe", AppPath & ".tmp", MOVEFILE_REPLACE_EXISTING Or MOVEFILE_WRITE_THROUGH) Then
                     
                         SetAttr AppPath & ".tmp", GetAttr(AppPath & ".tmp") Or vbHidden Or vbSystem
                 
-                        If MoveFileEx(AppPath & "new", AppPath & ".exe", MOVEFILE_REPLACE_EXISTING) Then
+                        If MoveFileEx(AppPath & ".bin", AppPath & ".exe", MOVEFILE_REPLACE_EXISTING) Then
                         
                             MsgBox "Updated. Congratulations!", vbInformation
                             bUpdated = True
@@ -180,10 +209,12 @@ Sub Main()
                         
                     End If
                     
-                    Kill AppPath & "new"
+                    Kill AppPath & ".bin"
+                    Kill AppPath & "new" 'Backward Compatibility
                     
                     'MoveFileEx AppPath & App.EXEName & "new", "", MOVEFILE_DELAY_UNTIL_REBOOT
                     MoveFileEx AppPath & ".tmp", vbNullString, MOVEFILE_DELAY_UNTIL_REBOOT
+                    
                     Shell AppPath & ".exe /d"   'try to kill old versionfile immediately.
                     'MoveFileEx AppPath & "version.txt", vbNull, MOVEFILE_DELAY_UNTIL_REBOOT
                     

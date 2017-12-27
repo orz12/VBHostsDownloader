@@ -1,2 +1,3 @@
-2.7.0
-add update detail part
+2.8.1
+518D42B11EACB9CAA08AEDA8E94B3A98
+add md5 check and do not utilize the res for requireAdministrator
