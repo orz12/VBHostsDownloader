@@ -1,3 +1,3 @@
-2.8.5
-67B695EBF9E3EB414D3130FD2B3AB217
-add md5 check and do not utilize the res for requireAdministrator
+2.8.6
+707C46F2CED80B308370908655E903B7
+Fix md5 check and update bug
