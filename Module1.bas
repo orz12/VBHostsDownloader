@@ -185,7 +185,7 @@ DownloadNewVersion:
                     
                         Dim lrtn As Long
                         lrtn = MsgBox("Hash check failed for " & "https://github.com/orz12/VBHostsDownloader/blob/master/VBHostsDownloader.exe?raw=true" & ". expected: " & strNewHash _
-                                & ", actual: " & Dx.DigestFileToHexStr(AppPath & ".exe"), vbAbortRetryIgnore)
+                                & ", actual: " & Dx.DigestFileToHexStr(AppPath & ".bin"), vbAbortRetryIgnore)
                         If lrtn = vbRetry Then
                             GoTo DownloadNewVersion
                         ElseIf lrtn = vbAbort Then
