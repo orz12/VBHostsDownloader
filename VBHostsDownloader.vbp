@@ -1,5 +1,5 @@
 Type=Exe
-Reference=*\G{00020430-0000-0000-C000-000000000046}#2.0#0#..\..\..\..\Windows\SysWOW64\stdole2.tlb#OLE Automation
+Reference=*\G{00020430-0000-0000-C000-000000000046}#2.0#0#..\..\..\..\..\..\Windows\SysWOW64\stdole2.tlb#OLE Automation
 Module=Module1; Module1.bas
 Class=MD5; MD5.cls
 Startup="Sub Main"
@@ -13,7 +13,7 @@ Description="Google hosts(by DannyWu) downloader"
 CompatibleMode="0"
 MajorVer=2
 MinorVer=8
-RevisionVer=0
+RevisionVer=2
 AutoIncrementVer=0
 ServerSupportFiles=0
 VersionCompanyName="LouizQ"

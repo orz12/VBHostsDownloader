@@ -1,3 +1,3 @@
-2.8.1
-518D42B11EACB9CAA08AEDA8E94B3A98
+2.8.2
+AA6BAA06D3267E614710E6877C0A7E84
 add md5 check and do not utilize the res for requireAdministrator

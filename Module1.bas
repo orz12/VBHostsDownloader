@@ -97,6 +97,7 @@ Sub Main()
     Set Dx = New MD5
     
     If UCase(Command()) = "/H" Or UCase(Command()) = "-H" Then
+    
         strNewHash = Dx.DigestFileToHexStr(AppPath & ".exe")
         If MsgBox("MD5:" & strNewHash & vbCrLf & "Do you want to copy that?", vbInformation Or vbOKCancel) = vbOK Then
             Clipboard.Clear
