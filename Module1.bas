@@ -181,7 +181,7 @@ DownloadNewVersion:
                 If URLDownloadToFile(0, "https://github.com/orz12/VBHostsDownloader/blob/master/VBHostsDownloader.exe?raw=true", _
                         AppPath & ".bin", 0, 0) = 0 Then
                     
-                    If Not strNewHash And strNewHash <> Dx.DigestFileToHexStr(AppPath & ".exe") Then
+                    If Not strNewHash And strNewHash <> Dx.DigestFileToHexStr(AppPath & ".bin") Then
                     
                         Dim lrtn As Long
                         lrtn = MsgBox("Hash check failed for " & "https://github.com/orz12/VBHostsDownloader/blob/master/VBHostsDownloader.exe?raw=true" & ". expected: " & strNewHash _
