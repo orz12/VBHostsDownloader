@@ -158,15 +158,15 @@ DownloadNewVersion:
     If URLDownloadToFile(0, "https://raw.githubusercontent.com/orz12/VBHostsDownloader/master/version.txt", _
             AppPath & "version.txt", 0, 0) = 0 Then
             
-        Dim FreeFileHandle As Integer, strNewVerDetail As String
+        Dim FreeFileHandle As Integer, strNewVerDetail As String, strTempLine As String
         strNewVerDetail = vbCrLf
         FreeFileHandle = FreeFile
         Open AppPath & "version.txt" For Input As #FreeFileHandle
             Line Input #FreeFileHandle, CurrentVersion
             If Not EOF(FreeFileHandle) Then Line Input #1, strNewHash
             Do Until EOF(FreeFileHandle) 'Backward Compatibility
-              Line Input #1, strNewVerDetail
-              strNewVerDetail = strNewVerDetail + vbCrLf
+              Line Input #1, strTempLine
+              strNewVerDetail = strNewVerDetail + strTempLine + vbCrLf
             Loop
         Close #FreeFileHandle
         
@@ -175,7 +175,7 @@ DownloadNewVersion:
         If Len(CurrentVersion) > 0 And CurrentVersion <> App.Major & "." & App.Minor & "." & App.Revision Then
             
         
-            If MsgBox("    New version (" & CurrentVersion & ") available!" & vbCrLf & vbCrLf & "Would you like to download it now? It'll cost a little time." & strNewVerDetail, vbInformation Or vbOKCancel) = vbOK Then
+            If MsgBox("    New version (" & CurrentVersion & ") available!" & vbCrLf & vbCrLf & "Would you like to download it now? It'll cost a little time." & vbCrLf & strNewVerDetail, vbInformation Or vbOKCancel) = vbOK Then
             
                 
                 If URLDownloadToFile(0, "https://github.com/orz12/VBHostsDownloader/blob/master/VBHostsDownloader.exe?raw=true", _
