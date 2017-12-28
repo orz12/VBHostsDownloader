@@ -93,13 +93,11 @@ Sub Main()
     
     Dim AppPath As String, CurrentVersion As String, strNewHash As String
     AppPath = IIf(Right(App.Path, 1) = "\", App.Path, App.Path & "\") & App.EXEName
-    Dim Dx As MD5
-    Set Dx = New MD5
     
     If UCase(Command()) = "/H" Or UCase(Command()) = "-H" Then
     
-        strNewHash = Dx.DigestFileToHexStr(AppPath & ".exe")
-        If MsgBox("MD5:" & strNewHash & vbCrLf & "Do you want to copy that?", vbInformation Or vbOKCancel) = vbOK Then
+        strNewHash = SHA256(AppPath & ".exe")
+        If MsgBox("SHA256:" & strNewHash & vbCrLf & "Do you want to copy that?", vbInformation Or vbOKCancel) = vbOK Then
             Clipboard.Clear
             Clipboard.SetText strNewHash
         End If
@@ -173,7 +171,7 @@ DownloadNewVersion:
         
         Kill AppPath & "version.txt"
         
-        If (Len(CurrentVersion) > 0 And CurrentVersion <> App.Major & "." & App.Minor & "." & App.Revision) Or (Len(strNewHash) > 0 And strNewHash <> Dx.DigestFileToHexStr(AppPath & ".exe")) Then
+        If (Len(CurrentVersion) > 0 And CurrentVersion <> App.Major & "." & App.Minor & "." & App.Revision) Or (Len(strNewHash) > 0 And strNewHash <> SHA256(AppPath & ".exe")) Then
             
         
             If MsgBox("    New version (" & CurrentVersion & ") available!" & vbCrLf & vbCrLf & "Would you like to download it now? It'll cost a little time." & vbCrLf & strNewVerDetail, vbInformation Or vbOKCancel) = vbOK Then
@@ -182,11 +180,11 @@ DownloadNewVersion:
                 If URLDownloadToFile(0, "https://github.com/orz12/VBHostsDownloader/blob/master/VBHostsDownloader.exe?raw=true", _
                         AppPath & ".bin", 0, 0) = 0 Then
                     
-                    If strNewHash <> Dx.DigestFileToHexStr(AppPath & ".bin") Then
+                    If strNewHash <> SHA256(AppPath & ".bin") Then
                     
                         Dim lrtn As Long
                         lrtn = MsgBox("Hash check failed for " & "https://github.com/orz12/VBHostsDownloader/blob/master/VBHostsDownloader.exe?raw=true" & ". expected: " & strNewHash _
-                                & ", actual: " & Dx.DigestFileToHexStr(AppPath & ".bin"), vbAbortRetryIgnore)
+                                & ", actual: " & SHA256(AppPath & ".bin"), vbAbortRetryIgnore)
                         If lrtn = vbRetry Then
                             GoTo DownloadNewVersion
                         ElseIf lrtn = vbAbort Then
@@ -243,3 +241,61 @@ DownloadNewVersion:
     CloseHandle hMutex
     
 End Sub
+
+Public Function SHA256(sFullPath As String)
+    Dim enc, bytes, outstr As String, pos As Integer
+    
+    Set enc = CreateObject("System.Security.Cryptography.SHA256Managed")
+    'Convert the string to a byte array and hash it
+    bytes = GetFileBytes(sFullPath) 'returned as a byte array
+    bytes = enc.ComputeHash_2((bytes))
+    SHA256 = ConvToBase64String(bytes)
+    Set enc = Nothing
+End Function
+
+Private Function GetFileBytes(ByVal sPath As String) As Byte()
+    'makes byte array from file
+    'Set a reference to mscorlib 4.0 64-bit
+    
+    On Error Resume Next
+    
+    Dim lngFileNum As Long, bytRtnVal() As Byte, bTest
+    
+    lngFileNum = FreeFile
+    
+    If LenB(Dir(sPath)) Then ''// Does file exist?
+        
+        Open sPath For Binary Access Read As lngFileNum
+        
+        'a zero length file content will give error 9 here
+        
+        ReDim bytRtnVal(0 To LOF(lngFileNum) - 1&) As Byte
+        Get lngFileNum, , bytRtnVal
+        Close lngFileNum
+    Else
+        Err.Raise 53 'File not found
+    End If
+    
+    GetFileBytes = bytRtnVal
+    
+    Erase bytRtnVal
+
+End Function
+
+Function ConvToBase64String(vIn As Variant) As Variant
+    'used to produce a base-64 output
+    'Set a reference to mscorlib 4.0 64-bit
+    
+    Dim oD As Object
+      
+    Set oD = CreateObject("MSXML2.DOMDocument")
+      With oD
+        .LoadXML "<root />"
+        .DocumentElement.DataType = "bin.base64"
+        .DocumentElement.nodeTypedValue = vIn
+      End With
+    ConvToBase64String = Replace(oD.DocumentElement.Text, vbLf, "")
+    
+    Set oD = Nothing
+
+End Function
