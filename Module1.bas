@@ -145,7 +145,14 @@ Sub Main()
     Else
         If URLDownloadToFile(0, HostsURL, GetSysPath & "\drivers\etc\hosts", 0, 0) = 0 Then
             If MsgBox("Done successfully. Would you like to flush DNS now?", vbOKCancel Or vbQuestion) = vbOK Then
-                MsgBox IIf(DnsFlushResolverCache = 1, "Enjoy!", "GetLastErrorCode:" & GetLastError & "(" & Err.LastDllError & "#" & Err.Number & ")")
+DnsFlush:
+                If DnsFlushResolverCache = 1 Then
+                    MsgBox "Enjoy!", vbInformation
+                Else
+                    If MsgBox("GetLastErrorCode:" & GetLastError & "(" & Err.LastDllError & "#" & Err.Number & ")", vbExclamation Or vbRetryCancel) = vbRetry Then
+                        GoTo DnsFlush
+                    End If
+                End If
             End If
         Else
             MsgBox "     Access denied!     " & vbCrLf & vbCrLf & "GetLastErrorCode:" & GetLastError & "(" & Err.LastDllError & "#" & Err.Number & ")"
