@@ -1,3 +1,3 @@
-2.8.8
-8F+6PEGcnGp6lSHHEtLQD7zUWSUdT2Ljc8zZKmhYEeo=
-Replace MD5 with SHA256(base64) which is safer for now
+2.8.9
+PGHnmPoS9qhOkrcQrSvHBoJXWt/o012S9NRgRUCQ1LA=
+Replace HostsURL from racaljk

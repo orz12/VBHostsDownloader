@@ -34,6 +34,8 @@ Const MOVEFILE_WRITE_THROUGH = &H8
 Declare Function GetSystemDirectory Lib "kernel32" Alias "GetSystemDirectoryA" (ByVal lpbuffer As String, ByVal nSize As Long) As Long
 Public Const MAX_PATH = 260
 
+Const HostsURL As String = "https://coding.net/u/scaffrey/p/hosts/git/raw/master/hosts-files/hosts"
+
 
 'Public Function GetSysPath() As String 'System32
 '    Dim Buffer As String
@@ -84,9 +86,7 @@ Sub Main()
 
     If UCase(Command()) = "/Q" Or UCase(Command()) = "-Q" Then
     
-        URLDownloadToFile 0, _
-            "https://raw.githubusercontent.com/WUZHIQIANGX/hosts/master/hosts", _
-            GetSysPath & "\drivers\etc\hosts", 0, 0
+        URLDownloadToFile 0, HostsURL, GetSysPath & "\drivers\etc\hosts", 0, 0
         End
         
     End If
@@ -142,9 +142,7 @@ Sub Main()
         
     Else
     
-        MsgBox IIf(URLDownloadToFile(0, _
-            "https://raw.githubusercontent.com/WUZHIQIANGX/hosts/master/hosts", _
-            GetSysPath & "\drivers\etc\hosts", 0, 0) = 0, _
+        MsgBox IIf(URLDownloadToFile(0, HostsURL, GetSysPath & "\drivers\etc\hosts", 0, 0) = 0, _
             "    Done successfully. Enjoy now!", "     Access denied!     " _
             & vbCrLf & vbCrLf & "GetLastErrorCode:" & GetLastError & "(" & Err.LastDllError & "#" & Err.Number & ")"), _
             vbInformation Or vbSystemModal
