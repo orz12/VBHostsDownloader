@@ -97,9 +97,9 @@ Sub Main()
     If UCase(Command()) = "/H" Or UCase(Command()) = "-H" Then
     
         strNewHash = SHA256(AppPath & ".exe")
-        If MsgBox("SHA256:" & strNewHash & vbCrLf & "Do you want to copy that?", vbInformation Or vbOKCancel) = vbOK Then
+        If MsgBox("Current Version:" & vbCrLf & App.Major & "." & App.Minor & "." & App.Revision & vbCrLf & "SHA256:" & vbCrLf & strNewHash & vbCrLf & "Do you want to copy that?", vbInformation Or vbOKCancel) = vbOK Then
             Clipboard.Clear
-            Clipboard.SetText strNewHash
+            Clipboard.SetText App.Major & "." & App.Minor & "." & App.Revision & vbCrLf & strNewHash
         End If
         End
         
