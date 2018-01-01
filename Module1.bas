@@ -34,7 +34,9 @@ Const MOVEFILE_WRITE_THROUGH = &H8
 Declare Function GetSystemDirectory Lib "kernel32" Alias "GetSystemDirectoryA" (ByVal lpbuffer As String, ByVal nSize As Long) As Long
 Public Const MAX_PATH = 260
 
-Const HostsURL As String = "https://coding.net/u/scaffrey/p/hosts/git/raw/master/hosts-files/hosts"
+Const HostsURL As String = "https://raw.githubusercontent.com/googlehosts/hosts/master/hosts-files/hosts"
+
+Declare Function DnsFlushResolverCache Lib "dnsapi.dll" () As Long
 
 
 'Public Function GetSysPath() As String 'System32
@@ -141,12 +143,13 @@ Sub Main()
         vbCritical Or vbSystemModal
         
     Else
-    
-        MsgBox IIf(URLDownloadToFile(0, HostsURL, GetSysPath & "\drivers\etc\hosts", 0, 0) = 0, _
-            "    Done successfully. Enjoy now!", "     Access denied!     " _
-            & vbCrLf & vbCrLf & "GetLastErrorCode:" & GetLastError & "(" & Err.LastDllError & "#" & Err.Number & ")"), _
-            vbInformation Or vbSystemModal
-            
+        If URLDownloadToFile(0, HostsURL, GetSysPath & "\drivers\etc\hosts", 0, 0) = 0 Then
+            If MsgBox("Done successfully. Would you like to flush DNS now?", vbOKCancel Or vbQuestion) = vbOK Then
+                MsgBox IIf(DnsFlushResolverCache = 1, "Enjoy!", "GetLastErrorCode:" & GetLastError & "(" & Err.LastDllError & "#" & Err.Number & ")")
+            End If
+        Else
+            MsgBox "     Access denied!     " & vbCrLf & vbCrLf & "GetLastErrorCode:" & GetLastError & "(" & Err.LastDllError & "#" & Err.Number & ")"
+        End If
     End If
         
 DownloadNewVersion:
